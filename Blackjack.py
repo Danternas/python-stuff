@@ -34,7 +34,7 @@ def set_game(cardsused,houseorplayer):
     randomcard = randint(0,415-cardsused)
 
     #Check who gets the card. House gets if true, else player
-    if houseorplayer == True:
+    if houseorplayer == True: #True is house. False is player.
         #Give the player the random card
         housecards.append(deck[randomcard])
     else:
@@ -50,7 +50,24 @@ def set_game(cardsused,houseorplayer):
     #return the counter
     return cardsused
 
-#Function to show the cards of players hand, or the house. True is house, false is player.
+#Function to check any results
+def checkcards(cardstocheck):
+    #Define variables
+    cardvalues = 0
+    acefound = False
+
+    #Sum up the values of all the cards in your hand.  Also check for an Ace.
+    for n in cardstocheck:
+        cardvalues += n[1]
+        if n[1] == 11:
+            acefound = True
+
+    if cardvalues>21 and acefound:
+        cardvalues = cardvalues-10
+
+    return cardvalues
+
+#Function to show the cards of player's or house's hand. True is house, false is player.
 def showcards(houseorplayer):
     #Define variable
     showcards = ""
@@ -68,78 +85,44 @@ def showcards(houseorplayer):
         print ("Your cards are:")
         print (showcards)
 
-#Function to check results and return if the game should end or not.
-def blackjack(houseorplayer):
-    #Get and show the cards for the player, or the house
+#Function to print card results, player or house
+def printcardresults(houseorplayer): #True is house. False is player.
+
+    #Show cards
     showcards(houseorplayer)
 
-    #Choose function depending on if it is the player or house
-    if houseorplayer == True:
-        return checkhouse()
-    else:
-        return checkplayer()
-
-#Function to check the player's results
-def checkhouse():
-    #Define variables
-    cardvalues = 0
-    acefound = False
-
-    #Sum up the values of all the cards in your hand.  Also check for an Ace.
-    for n in housecards:
-        cardvalues += n[1]
-        if n[1] == 11:
-            acefound = True
-
     #Check if blackjack, bust or print the value
-    if cardvalues == 21:
-        print ("Your value is 21!")
-        print ("BLACKJACK!")
-        return False, cardvalues
-    elif cardvalues <= 21:
-        print (f"Your value is: {cardvalues}")
-        return True, cardvalues
-    elif cardvalues<=31 and acefound:
-        print (f"Your value is: {cardvalues-10}")
-        return True, cardvalues
-    elif cardvalues>31 and acefound:
-        print (f"Your value is: {cardvalues-10}")
+    #House
+    if houseorplayer == True: #True is house. False is player.
+        
+        #Get the value of house's cards
+        cardvalues = checkcards(housecards)
+
+        #Display blackjack rule outcome
+        if cardvalues == 21:
+            print ("House value is 21!")
+            print ("HOUSE BLACKJACK!")
+        elif cardvalues <= 21:
+            print (f"House value is: {cardvalues}")
+        else:
+            print (f"House value is: {cardvalues}")
+            print ("HOUSE IS BUST!")
+
+    #Player
     else:
-        print (f"Your value is: {cardvalues}")
-        print ("BUST!")
-        return False, cardvalues
 
-#Function to check the house's results
-def checkplayer():
-    #Define variables
-    cardvalues = 0
-    acefound = False
+        #Get the value of player's cards
+        cardvalues = checkcards(mycards)
 
-    #Sum up the values of all the cards in your hand.  Also check for an Ace.
-    for n in mycards:
-        cardvalues += n[1]
-        if n[1] == 11:
-            acefound = True
-
-    #Check if blackjack, bust or print the value
-    if cardvalues == 21:
-        print ("Your value is 21!")
-        print ("BLACKJACK!")
-        return False, cardvalues
-    elif cardvalues <= 21:
-        print (f"Your value is: {cardvalues}")
-        return True, cardvalues
-    elif cardvalues<=31 and acefound:
-        print (f"Your value is: {cardvalues-10}")
-        return True, cardvalues
-    elif cardvalues>31 and acefound:
-        print (f"Your value is: {cardvalues-10}")
-        print ("BUST!")
-        return False, cardvalues
-    else:
-        print (f"Your value is: {cardvalues}")
-        print ("BUST!")
-        return False, cardvalues
+        #Display blackjack rule outcome
+        if cardvalues == 21:
+            print ("Your value is 21!")
+            print ("BLACKJACK!")
+        elif cardvalues <= 21:
+            print (f"Your value is: {cardvalues}")
+        else:
+            print (f"Your value is: {cardvalues}")
+            print ("BUST!")
 
 #Function to ask if the player want to try again
 def play_again_function():
@@ -178,18 +161,20 @@ def current_game_function(cardsused):
     #Return H or S
     return playerinput
 
-#Define play_again and current_game
+#Define play_again
 play_again = "Y"
 
-#Run the program while play again is Y
+#Run the game while play_again is Y
 while play_again == "Y":
     #initiate variables
     deck = []
     housecards = []
     mycards = []
     cardsused = 0
-    current_session = [True,0]
+    current_session = True
     temp = [True,0]
+    housefinalvalue = [True,0]
+    playerfinalvalue = [True,0]
 
     #Sort the deck
     set_deck()
@@ -202,14 +187,12 @@ while play_again == "Y":
     cardsused = set_game(cardsused,False)
     cardsused = set_game(cardsused,False)
 
-    #Show the cards of house
-    showcards(True)
-
-    #Reveal result of cards
-    current_session[0], _ = blackjack(False)
+    #Show the cards of house and player
+    printcardresults(True)
+    printcardresults(False)
 
     #While the blackjack function returns true
-    while current_session[0]:
+    while current_session:
 
         #Ask if the player want another card
         if current_game_function(cardsused) == "H":
@@ -217,17 +200,39 @@ while play_again == "Y":
             #Give a card to the player
             cardsused = set_game(cardsused,False)
 
-            #Reveal result of cards. Set the session to end depedning on result
-            current_session[0], _ = blackjack(False)
+            #Get and show the cards for the player
+            printcardresults(False) #True is house. False is player.
 
+            #Spacer
+            print ("- - -")
+
+            #21 or over means either blackjack or bust, so end the game.
+            if checkcards(mycards) >= 21:
+                printcardresults(False)
+                current_session = False
+
+        #If they don't then process who wins
         else:
-            #Reveal result of cards
-            blackjack(False)
+            #Get and show the cards for the house
+            printcardresults(True) #True is house. False is player.
+
+            #Spacer
+            print ("- - -")
+
+            #Get and show the cards for the player
+            printcardresults(False) #True is house. False is player.
+
+            #Spacer
+            print ("- - -")
+
+            #Check who won
+            if checkcards(mycards) > checkcards(housecards):
+                print ("You win!")
+            else:
+                print ("House wins!")
 
             #Set the session to end
-            current_session[0] = False
+            current_session = False
     
-    #Check who won
-
     #Check if the player wants to play again
     play_again = play_again_function()
